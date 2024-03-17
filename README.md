@@ -1,66 +1,51 @@
-## Foundry
+# KingSwap Contracts
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+KingSwap is a platform that enables users without native tokens to use an ERC20Permit compatible token for paying swap transaction fees towards a native token. It utilizes the EIP-2612 standard, allowing users to sign a message that authorizes a spender to use their tokens on their behalf. By integrating with PancakeSwapV4 hooks, KingSwap efficiently refunds transaction fees to the relayer on the user's behalf.
 
-Foundry consists of:
+## Contracts Overview
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+### KingSwap
 
-## Documentation
+- **Description**: The central contract that users interact with for token swapping and for the relayer to receive refunds on transaction fees.
+- **Main Functions**:
+  - Token swapping
+  - Refunding the relayer for transaction fees
 
-https://book.getfoundry.sh/
+### KingSwapHook
 
-## Usage
+- **Description**: This contract monitors the gas expended by the relayer to cover transaction fees for the user.
+- **Key Operations**:
+  - Receives tokens from the PancakeSwap Vault
+  - Splits tokens between the relayer and the user
 
-### Build
+## Development Guide
 
-```shell
-$ forge build
+### Install Dependencies
+
+```bash
+forge install
 ```
 
-### Test
+### Compile Contracts
 
-```shell
-$ forge test
+```bash
+forge compile
 ```
 
-### Format
+### Run Tests
 
-```shell
-$ forge fmt
+```bash
+forge test
 ```
 
-### Gas Snapshots
+## Deployed Contracts Information
 
-```shell
-$ forge snapshot
-```
+### Base Sepolia Testnet
 
-### Anvil
+- **KingSwap.sol**: [View on BaseScan](https://sepolia.basescan.org/address/0xdfa46254e8543e094fb3911d261cb824453b3f14)
+- **KingSwapHook.sol**: [View on BaseScan](https://sepolia.basescan.org/address/0x0bf83d6eff67c49464fffca77f7553e6066c19d6)
 
-```shell
-$ anvil
-```
+### Arbitrum Sepolia Testnet
 
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+- **KingSwap.sol**: [View on Arbiscan](https://sepolia.arbiscan.io/address/0x8b8fc6d345ef56fbef941dda3794fcbf207169d2)
+- **KingSwapHook.sol**: [View on Arbiscan](https://sepolia.arbiscan.io/address/0x7f5eac4cc93a670f9132040289453967a04cb549)

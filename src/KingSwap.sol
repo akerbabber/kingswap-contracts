@@ -22,20 +22,6 @@ contract KingSwap {
         router = _router;
     }
 
-    function swap(
-        ICLSwapRouterBase.V4CLExactInputParams calldata params,
-        uint256 amount,
-        uint256 permitDeadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external {
-        IERC20Permit fromToken = IERC20Permit(Currency.unwrap(params.currencyIn));
-        fromToken.permit(msg.sender, address(this), type(uint256).max, type(uint256).max, v, r, s);
-        IERC20(address(fromToken)).transferFrom(msg.sender, address(this), amount);
-        router.exactInput(params, block.timestamp);
-    }
-
     function swapSingle(
         ICLSwapRouterBase.V4CLExactInputSingleParams calldata params,
         address from,

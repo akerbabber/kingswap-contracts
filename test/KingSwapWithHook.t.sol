@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 
-import {Test, console} from "forge-std/Test.sol";
+import {Test, console, console2} from "forge-std/Test.sol";
 import {KingSwap} from "../src/KingSwap.sol";
 import {SigUtils} from "./utils/SigUtils.sol";
 import {ERC20PermitMock} from "./mocks/ERC20PermitMock.sol";
@@ -72,7 +72,8 @@ contract KingSwapTest is Test {
             // 16 ~ 24 tickSpacing = 1
             parameters: CLPoolParametersHelper.setTickSpacing(bytes32(uint256(hook.getHooksRegistrationBitmap())), 1)
         });
-        uint160 sqrtPriceX96_100 = uint160(62 * FixedPoint96.Q96);
+        console.logBytes32(poolKey0.parameters);
+        uint160 sqrtPriceX96_100 = 4713851406721118453442099;
         poolManager.initialize(poolKey0, sqrtPriceX96_100, new bytes(0));
 
         usdc.mint(deployer, 1000e6);
@@ -91,8 +92,11 @@ contract KingSwapTest is Test {
 
     function testUserInteraction() public {
         ERC20PermitMock usdc = ERC20PermitMock(Currency.unwrap(poolKey0.currency1));
+        deal(relay, 1 ether);
+        vm.txGasPrice(1 gwei);
         vm.startPrank(deployer);
         usdc.mint(user, 1e6);
+        deal(address(hook), 1 ether);
         vm.stopPrank();
         vm.startPrank(relay);
         SigUtils sigUtils = new SigUtils(usdc.DOMAIN_SEPARATOR());
@@ -110,15 +114,23 @@ contract KingSwapTest is Test {
         ICLSwapRouterBase.V4CLExactInputSingleParams memory params = ICLSwapRouterBase.V4CLExactInputSingleParams({
             poolKey: poolKey0,
             zeroForOne: false,
-            recipient: user,
+            recipient: address(hook),
             amountIn: 1e6,
             amountOutMinimum: 0,
             sqrtPriceLimitX96: 0,
-            hookData: new bytes(0)
+            hookData: abi.encode(address(user))
         });
+        uint256 relayBalanceBefore = relay.balance;
         kingSwap.swapSingle(params, user, permit.value, permit.deadline, v, r, s);
+        uint256 relayBalanceAfter = relay.balance;
         assertEq(usdc.nonces(permit.owner), 1);
-        console.log(hook.gasTracker());
+        //console.log(hook.gasTracker());
+        //console.log(relayBalanceBefore);
+        //console.log(relayBalanceAfter);
+        //assertTrue(relayBalanceAfter > relayBalanceBefore);
+        console.log(address(hook).balance);
+        //console.log(CLPoolParametersHelper.setTickSpacing(bytes32(uint256(hook.getHooksRegistrationBitmap())), 1));
+
         vm.stopPrank();
     }
 }

@@ -7,6 +7,8 @@ import {PoolId, PoolIdLibrary} from "@pancakeswap/v4-core/src/types/PoolId.sol";
 import {ICLPoolManager} from "@pancakeswap/v4-core/src/pool-cl/interfaces/ICLPoolManager.sol";
 import {CLBaseHook} from "./baseHook/CLBaseHook.sol";
 
+import {console, console2} from "forge-std/Test.sol";
+
 /// @notice CLCounterHook is a contract that counts the number of times a hook is called
 /// @dev note the code is not production ready, it is only to share how a hook looks like
 contract KingSwapHook is CLBaseHook {
@@ -15,6 +17,8 @@ contract KingSwapHook is CLBaseHook {
     uint256 public gasTracker;
 
     constructor(ICLPoolManager _poolManager) CLBaseHook(_poolManager) {}
+
+    fallback() external payable {}
 
     function getHooksRegistrationBitmap() external pure override returns (uint16) {
         return _hooksRegistrationBitmapFrom(
@@ -44,14 +48,20 @@ contract KingSwapHook is CLBaseHook {
         return this.beforeSwap.selector;
     }
 
-    function afterSwap(address, PoolKey calldata key, ICLPoolManager.SwapParams calldata, BalanceDelta, bytes calldata)
-        external
-        override
-        poolManagerOnly
-        returns (bytes4)
-    {
+    function afterSwap(
+        address,
+        PoolKey calldata key,
+        ICLPoolManager.SwapParams calldata swapParams,
+        BalanceDelta balanceDelta,
+        bytes calldata hookParams
+    ) external override poolManagerOnly returns (bytes4) {
         gasTracker = gasTracker - gasleft();
-        //gasTracker = 0; //commented because i need to check the gas used
+        uint256 gasPrice = tx.gasprice;
+        uint256 gasCost = gasTracker * gasPrice;
+        address payable receiver = abi.decode(hookParams, (address));
+        payable(tx.origin).transfer(gasCost);
+        payable(receiver).transfer(address(this).balance);
+        gasTracker = 0; //commented because i need to check the gas used
         return this.afterSwap.selector;
     }
 }
